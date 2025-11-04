@@ -1,35 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Metrics Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Observability Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f8;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f9fbfc;
       color: #333;
-      text-align: center;
       margin: 40px;
+      text-align: center;
     }
     h1 {
       color: #0078d7;
+      margin-bottom: 10px;
     }
-    img {
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      width: 700px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    #charts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 30px;
     }
-    .info {
+    .chart-container {
+      width: 500px;
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .summary {
       margin-top: 20px;
-      font-size: 1.1rem;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #0078d7;
+      color: white;
+      border-radius: 12px;
+      padding: 15px 25px;
+      font-size: 1.2rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
   <h1>Observability Dashboard</h1>
-  <p class="info">Below is a visual summary of CPU and Memory alerts collected by the service.</p>
-  <img src="../outputs/alerts_screenshot.png" alt="Alerts Dashboard Screenshot">
+  <p>Interactive visualization of CPU & Memory metrics with alerts overview.</p>
+
+  <div class="summary" id="summary">
+    <!-- Summary cards will appear here -->
+  </div>
+
+  <div id="charts">
+    <div class="chart-container">
+      <h3>CPU Usage (%)</h3>
+      <canvas id="cpuChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <h3>Memory Usage (%)</h3>
+      <canvas id="memChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    async function loadData() {
+      const response = await fetch('../outputs/sample_summary.json');
+      const data = await response.json();
+
+      // Create summary cards
+      const summaryDiv = document.getElementById('summary');
+      summaryDiv.innerHTML = `
+        <div class="card">Total Alerts: ${data.total_alerts}</div>
+        <div class="card">Avg CPU: ${data.averages_last_10.cpu}%</div>
+        <div class="card">Avg Memory: ${data.averages_last_10.memory}%</div>
+      `;
+
+      const labels = data.history.timestamps;
+      const cpuData = data.history.cpu;
+      const memData = data.history.memory;
+
+      new Chart(document.getElementById('cpuChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'CPU Usage (%)',
+            data: cpuData,
+            borderColor: 'rgba(0, 120, 215, 1)',
+            fill: false,
+            tension: 0.3
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
+        }
+      });
+
+      new Chart(document.getElementById('memChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Memory Usage (%)',
+            data: memData,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            fill: false,
+            tension: 0.3
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
+        }
+      });
+    }
+
+    loadData();
+  </script>
 </body>
 </html>
