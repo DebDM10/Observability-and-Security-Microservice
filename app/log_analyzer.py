@@ -1,0 +1,1 @@
+# Parses log file for INFO/WARN/ERROR counts

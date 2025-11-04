@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+psutil
+bcrypt
+python-multipart
+sqlite3

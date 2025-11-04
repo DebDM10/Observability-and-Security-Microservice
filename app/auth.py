@@ -1,0 +1,1 @@
+# Handles registration, login, and session validation
